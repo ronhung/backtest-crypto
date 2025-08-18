@@ -35,6 +35,19 @@ def simple_moving_average_strategy(data: pd.DataFrame, short_window: int = 10, l
     
     return signals
 
+def buy_and_hold_strategy(data: pd.DataFrame) -> list:
+    """
+    買入並持有策略：開頭買入，最後賣出
+    Returns: 信號列表（第0根=1，最後一根=-1，其餘=0）
+    """
+    n = len(data)
+    if n == 0:
+        return []
+    signals = [0] * n
+    signals[0] = 1
+    signals[-1] = -1
+    return signals
+
 def rsi_strategy(data: pd.DataFrame, rsi_period: int = 14, oversold: float = 30, overbought: float = 70) -> list:
     """
     RSI策略
@@ -160,6 +173,7 @@ def run_strategy_backtest(data_file: str, strategy_func, strategy_params: dict =
 def compare_strategies(data_file: str):
     """比較不同策略的表現"""
     strategies = {
+        "買入並持有": (buy_and_hold_strategy, {}),
         "移動平均線策略": (simple_moving_average_strategy, {"short_window": 10, "long_window": 30}),
         "RSI策略": (rsi_strategy, {"rsi_period": 14, "oversold": 30, "overbought": 70}),
         "布林帶策略": (bollinger_bands_strategy, {"window": 20, "num_std": 2})
