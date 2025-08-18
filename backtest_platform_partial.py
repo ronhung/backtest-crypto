@@ -74,7 +74,7 @@ class PartialPositionBacktestEngine:
         # 初始化
         current_capital = self.initial_capital
         current_position_ratio = 0.0  # 當前倉位比例 (0-1)
-        current_position_value = 0.0  # 當前倉位價值
+        current_position = 0.0  # 當前倉位
         entry_price = 0
         
         self.portfolio_values = [current_capital]
@@ -93,22 +93,22 @@ class PartialPositionBacktestEngine:
                 additional_position_ratio = target_position_ratio - current_position_ratio
                 
                 if additional_position_ratio > 0:
-                    # 計算需要投入的資金
-                    additional_capital_needed = additional_position_ratio * current_capital / (1 - additional_position_ratio)
+                    # 計算需要投入的資金 
+                    additional_capital_needed = additional_position_ratio * current_capital / (1 - current_position_ratio)
                     
                     if additional_capital_needed <= current_capital:
                         # 執行買入
                         commission = additional_capital_needed * self.commission_rate
-                        actual_investment = additional_capital_needed - commission
+                        actual_investment = (additional_capital_needed - commission)/ current_price
                         
                         # 更新倉位
                         if current_position_ratio == 0:
                             entry_price = current_price
                         
                         # 計算新的倉位比例和價值
-                        total_position_value = current_position_value + actual_investment
+                        total_position = current_position + actual_investment
                         current_position_ratio = target_position_ratio
-                        current_position_value = total_position_value
+                        current_position = total_position
                         current_capital -= additional_capital_needed
                         
                         # 記錄交易
@@ -131,13 +131,14 @@ class PartialPositionBacktestEngine:
                 
                 if actual_sell_ratio > 0:
                     # 計算賣出價值
-                    sell_value = current_position_value * (actual_sell_ratio / current_position_ratio)
+                    sell_position = current_position * (actual_sell_ratio / current_position_ratio)
+                    sell_value = sell_position * current_price
                     commission = sell_value * self.commission_rate
                     net_sell_value = sell_value - commission
                     
                     # 更新倉位
                     current_position_ratio -= actual_sell_ratio
-                    current_position_value -= sell_value
+                    current_position -= sell_position
                     current_capital += net_sell_value
                     
                     # 如果倉位為0，重置入場價格
@@ -160,7 +161,7 @@ class PartialPositionBacktestEngine:
             # 更新投資組合價值
             if current_position_ratio > 0:
                 # 有倉位，價值隨價格變動
-                portfolio_value = current_capital + current_position_value * (current_price / entry_price)
+                portfolio_value = current_capital + current_position * current_price
             else:
                 # 無倉位，只有現金
                 portfolio_value = current_capital
