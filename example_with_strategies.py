@@ -46,7 +46,7 @@ def main():
     print("="*60)
     
     # 數據文件路徑
-    data_file = 'kline_with_indicators/btcusdt_1m.csv'
+    data_file = 'kline_with_indicators/btcusdt_4h.csv'
     
     print(f"使用數據文件: {data_file}")
     print("\n可用的內建策略:")
@@ -122,7 +122,7 @@ def quick_test():
     """快速測試所有策略"""
     print("快速測試所有內建策略...")
     
-    data_file = 'kline_with_indicators/btcusdt_1m.csv'
+    data_file = 'kline_with_indicators/btcusdt_4h.csv'
     
     tests = [
         ("移動平均線（降頻）", simple_moving_average_strategy, {"short_window": 10, "long_window": 30}),
