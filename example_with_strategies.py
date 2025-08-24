@@ -6,7 +6,8 @@ from strategy_example import (
     buy_and_hold_strategy,
 )
 import random
-
+import itertools
+import pandas as pd
 
 def reduce_trading_frequency(signals, target_trades=1000):
     """隨機將非零信號歸零，將非零次數控制到 target_trades 左右"""
@@ -38,6 +39,22 @@ def run_strategy_backtest_reduced(data_file, strategy_func, strategy_params=None
     backtest.plot_results()
     return backtest, performance
 
+def run_strategy_backtest(data_file, strategy_func, strategy_params=None):
+    """載入數據 → 產生信號 → 降頻 → 回測"""
+    backtest = BacktestEngine(initial_capital=10000, commission_rate=0.001, symbol='BTCUSDT')
+    if not backtest.load_data(data_file):
+        print("數據載入失敗")
+        return None, None
+
+    signals = strategy_func(backtest.data, **strategy_params) if strategy_params else strategy_func(backtest.data)
+    
+    performance = backtest.run_backtest(signals)
+    backtest.print_summary()
+    # 如不需圖，可註解下一行
+    # backtest.plot_results()
+    return backtest, performance
+
+
 def main():
     """主函數：展示如何使用內建策略"""
     
@@ -46,7 +63,7 @@ def main():
     print("="*60)
     
     # 數據文件路徑
-    data_file = 'kline_with_indicators/btcusdt_4h.csv'
+    data_file = 'kline_with_indicators/btcusdt_1m.csv'
     
     print(f"使用數據文件: {data_file}")
     print("\n可用的內建策略:")
@@ -140,9 +157,94 @@ def quick_test():
         except Exception as e:
             print(f"{title} 執行失敗: {e}")
 
+
+def objective_function(result: dict) -> float:
+    """
+    評估策略績效的函數
+    這裡用 Sharpe ratio 當作目標，你可以換成其他指標
+    """
+    return result.get('sharpe_ratio', 0)
+
+def grid_search(strategy_fn, param_grid: dict, data_file: str):
+    """
+    針對單一策略做 Grid Search
+    strategy_fn: 策略函數
+    param_grid: 參數空間 (dict)
+    data: 回測資料 (DataFrame)
+    backtest_engine: 你的回測引擎
+    """
+    best_score = -float("inf")
+    best_params = None
+    results = []
+
+    keys = list(param_grid.keys())
+    for values in itertools.product(*param_grid.values()):
+        params = dict(zip(keys, values))
+
+
+        # 執行回測
+        _, result = run_strategy_backtest(data_file, strategy_fn, params)
+
+        # 評估績效
+        score = objective_function(result)
+
+        results.append((params, score))
+
+        if score > best_score:
+            best_score = score
+            best_params = params
+
+    return best_params, best_score, results
+
+def best_sma_strategy_selection():
+    data_file = 'kline_with_indicators/btcusdt_1m_train.csv'
+    param_grid_sma = {
+        "short_window": [10*60, 15*60, 30*60, 60*60, 120* 60],
+        "long_window": [30*60, 60*60, 120*60, 240*60, 480*60, 600*60]
+    }
+
+    best_params, best_score, results = grid_search(
+        simple_moving_average_strategy,
+        param_grid_sma,
+        data_file
+    )
+    print("最佳參數:", best_params)
+    print("最佳績效:", best_score)
+    print(results)
+    df = pd.DataFrame([
+        {**params, "score": float(score)} for params, score in results
+    ])
+    df.to_csv("rsi_grid_search_results_sma.csv", index=False)
+
+def best_rsi_strategy_selection():
+    data_file = 'kline_with_indicators/btcusdt_1m_train.csv'
+    param_grid_rsi = {
+        "rsi_period": [7, 14, 35, 70, 90, 180],
+        "oversold": [60, 70, 80, 90, 95],
+        "overbought": [5, 10, 20, 30, 40]
+
+    }
+
+    best_params, best_score, results = grid_search(
+        rsi_strategy,
+        param_grid_rsi,
+        data_file
+    )
+    print("最佳參數:", best_params)
+    print("最佳績效:", best_score)
+    print(results)
+    df = pd.DataFrame([
+        {**params, "score": float(score)} for params, score in results
+    ])
+    df.to_csv("rsi_grid_search_results_rsi.csv", index=False)
+
 if __name__ == "__main__":
     # 直接運行快速測試
-    quick_test()
+    # quick_test()
     
     # 如果想要互動式選擇，可以取消註釋下面的行
     # main()
+
+    best_sma_strategy_selection()
+    print("="*50)
+    best_rsi_strategy_selection()

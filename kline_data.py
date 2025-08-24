@@ -84,17 +84,48 @@ def download_all_binance(symbol='BTCUSDT', interval= '1m',  start_date='2020-01-
  
     print(f"\nð All data saved to {output_csv}, total rows: {len(result)}") 
     print(f"Total time: {int(minutes)} minutes {int(seconds)} seconds") 
- 
-coin_list = ['BTCUSDT', 'ETHUSDT' ,'BNBUSDT' ,'XRPUSDT' ,'SOLUSDT'] 
-interval_list = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'] 
-for coin in coin_list: 
-    for interval in interval_list: 
-             
-        output_file = f"{coin.lower()}_{interval}.csv" 
-        download_all_binance( 
-            symbol=coin, 
-            interval=interval,  
-            start_date='2021-01-01',  
-            end_date='2025-07-29',  
-            output_csv=output_file 
-        )
+
+
+def split_csv(input_file: str, train_file: str, test_file: str, train_ratio: float = 0.8):
+    """
+    將 CSV 切分成訓練集與測試集
+    input_file: 原始 CSV 檔案
+    train_file: 前段輸出檔案
+    test_file: 後段輸出檔案
+    train_ratio: 訓練集比例 (預設 0.8)
+    """
+    # 讀取 CSV
+    df = pd.read_csv(input_file)
+
+    # 切分 index
+    split_idx = int(len(df) * train_ratio)
+
+    # 前段
+    df_train = df.iloc[:split_idx]
+    # 後段
+    df_test = df.iloc[split_idx:]
+
+    # 輸出
+    df_train.to_csv(train_file, index=False)
+    df_test.to_csv(test_file, index=False)
+
+    print(f"已切分完成：{train_file} ({len(df_train)}筆), {test_file} ({len(df_test)}筆)")
+
+
+def main():
+    coin_list = ['BTCUSDT', 'ETHUSDT' ,'BNBUSDT' ,'XRPUSDT' ,'SOLUSDT'] 
+    interval_list = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'] 
+    for coin in coin_list: 
+        for interval in interval_list: 
+                
+            output_file = f"{coin.lower()}_{interval}.csv" 
+            download_all_binance( 
+                symbol=coin, 
+                interval=interval,  
+                start_date='2021-01-01',  
+                end_date='2025-07-29',  
+                output_csv=output_file 
+            )
+
+if __name__ == "__main__":
+    split_csv("kline_with_indicators\\btcusdt_1m.csv", "kline_with_indicators\\btcusdt_1m_train.csv", "kline_with_indicators\\btcusdt_1m_test.csv", 0.8)
