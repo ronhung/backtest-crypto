@@ -118,7 +118,7 @@ def main():
     for coin in coin_list: 
         for interval in interval_list: 
                 
-            output_file = f"{coin.lower()}_{interval}.csv" 
+            output_file = f"kline_data\\{coin.lower()}_{interval}.csv" 
             download_all_binance( 
                 symbol=coin, 
                 interval=interval,  
@@ -128,4 +128,5 @@ def main():
             )
 
 if __name__ == "__main__":
-    split_csv("kline_with_indicators\\btcusdt_1m.csv", "kline_with_indicators\\btcusdt_1m_train.csv", "kline_with_indicators\\btcusdt_1m_test.csv", 0.8)
+    main()
+    # split_csv("kline_with_indicators\\btcusdt_1m.csv", "kline_with_indicators\\btcusdt_1m_train.csv", "kline_with_indicators\\btcusdt_1m_test.csv", 0.8)
