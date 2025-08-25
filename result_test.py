@@ -81,7 +81,7 @@ def best_sma_strategy_selection(top_param):
     df.to_csv("rsi_grid_search_results_test_sma.csv", index=False)
 
 def best_rsi_strategy_selection(top_param):
-    data_file = 'kline_with_indicators/btcusdt_1m_test.csv'
+    data_file = 'kline_with_indicators/btcusdt_1m_train.csv'
     best_score = -float("inf")
     best_params = None
     results = []
@@ -116,7 +116,7 @@ def best_rsi_strategy_selection(top_param):
     df = pd.DataFrame([
         {**params, "score": float(score)} for params, score in results
     ])
-    df.to_csv("rsi_grid_search_results_test_rsi.csv", index=False)
+    df.to_csv("rsi_grid_search_results_train_rsi.csv", index=False)
 
 if __name__ == "__main__":
     # 直接運行快速測試
@@ -125,7 +125,11 @@ if __name__ == "__main__":
     # 如果想要互動式選擇，可以取消註釋下面的行
     # main()
 
-    best_sma_strategy_selection(top10_sma)
-    print("="*50)
+    # best_sma_strategy_selection(top10_sma)
+    # print("="*50)
     best_rsi_strategy_selection(top10_rsi)
+    print("="*50)
+    # data_file = 'kline_with_indicators/btcusdt_1m_test.csv'
+    # _, result = run_strategy_backtest(data_file, buy_and_hold_strategy , None)
+    # print(result)
 

@@ -69,7 +69,7 @@ def rsi_strategy(data: pd.DataFrame, rsi_period: int = 14, oversold: float = 30,
     loss = (-delta.where(delta < 0, 0)).rolling(window=rsi_period).mean()
     rs = gain / loss
     rsi = 100 - (100 / (1 + rs))
-    
+    k = 500 # 加乘係數
     for i in range(len(data)):
         if i < rsi_period:
             signals.append(0)
@@ -79,10 +79,12 @@ def rsi_strategy(data: pd.DataFrame, rsi_period: int = 14, oversold: float = 30,
             
             # RSI從超賣區回升
             if prev_rsi < oversold and current_rsi >= oversold:
-                signals.append(1)  # 買入信號
+                signal = k * (current_rsi - oversold) / (overbought - oversold)
+                signals.append(np.tanh(signal))  # 買入信號
             # RSI從超買區回落
             elif prev_rsi > overbought and current_rsi <= overbought:
-                signals.append(-1)  # 賣出信號
+                signal = k * (current_rsi - overbought) / (oversold - overbought)
+                signals.append(-np.tanh(signal))  # 賣出信號
             else:
                 signals.append(0)
     
