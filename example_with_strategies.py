@@ -9,6 +9,7 @@ import random
 import itertools
 import pandas as pd
 
+
 def reduce_trading_frequency(signals, target_trades=1000):
     """隨機將非零信號歸零，將非零次數控制到 target_trades 左右"""
     non_zero_indices = [i for i, s in enumerate(signals) if s != 0]
@@ -239,12 +240,13 @@ def best_rsi_strategy_selection():
     df.to_csv("rsi_grid_search_results_rsi.csv", index=False)
 
 if __name__ == "__main__":
+    data_file = 'kline_with_indicators/btcusdt_1m_train.csv'
     # 直接運行快速測試
     # quick_test()
     
     # 如果想要互動式選擇，可以取消註釋下面的行
     # main()
-
-    best_sma_strategy_selection()
+    _, result = run_strategy_backtest(data_file, buy_and_hold_strategy, None)
+    # best_sma_strategy_selection()
     # print("="*50)
     # best_rsi_strategy_selection()

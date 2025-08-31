@@ -269,8 +269,8 @@ class BacktestEngine:
             end_time = self.equity_curve.index[-1]
             time_span = end_time - start_time
             
-            # 計算年化倍數（一年365.25天）
-            days_in_year = 365.25
+            # 計算年化倍數（一年365天）
+            days_in_year = 365
             total_days = time_span.total_seconds() / (24 * 3600)  # 轉換為天數
             
             if total_days > 0:
@@ -278,7 +278,7 @@ class BacktestEngine:
                 annual_return = (1 + total_return) ** annual_multiplier - 1
                 
                 # 年化波動率
-                annual_volatility = daily_returns.std() *  np.sqrt(1/kline_days) * np.sqrt(annual_multiplier)
+                annual_volatility = daily_returns.std() *  np.sqrt(365*24*60)
             else:
                 annual_return = 0
                 annual_volatility = 0
@@ -299,15 +299,18 @@ class BacktestEngine:
         drawdown = (cumulative_returns - running_max) / running_max
         mdd = drawdown.min()
         
-        # 新的勝率計算：等權方式
+        # 新的勝率計算：資金加權勝率 (profit) / (profit + loss)
         if self.closed_positions:
-            profitable_positions = sum(1 for pos in self.closed_positions if pos['is_profitable'])
+            profitable_amount = sum(pos['net_profit'] for pos in self.closed_positions if pos['net_profit'] > 0)
+            unprofitable_amount = sum(-1* pos['net_profit'] for pos in self.closed_positions if pos['net_profit'] <= 0)
             total_positions = len(self.closed_positions)
-            win_rate = profitable_positions / total_positions
+            win_rate = profitable_amount / (profitable_amount + unprofitable_amount) if (profitable_amount + unprofitable_amount) > 0 else 0
             
             # 計算平均盈虧
-            avg_profit = np.mean([pos['net_profit'] for pos in self.closed_positions])
-            avg_profit_percentage = np.mean([pos['net_profit'] / (pos['buy_price'] * pos['quantity']) for pos in self.closed_positions])
+            profits = [pos['net_profit'] for pos in self.closed_positions]
+            costs = [pos['buy_price'] * pos['quantity'] for pos in self.closed_positions]
+            avg_profit = np.mean(profits)
+            avg_profit_percentage = sum(profits) / sum(costs) # 加權平均獲利比
             
             # 計算最大單筆盈虧
             max_profit = max([pos['net_profit'] for pos in self.closed_positions])
