@@ -163,7 +163,7 @@ def objective_function(result: dict) -> float:
     評估策略績效的函數
     這裡用 Sharpe ratio 當作目標，你可以換成其他指標
     """
-    return result.get('sharpe_ratio', 0)
+    return result.get('total_return', 0)
 
 def grid_search(strategy_fn, param_grid: dict, data_file: str):
     """
@@ -246,5 +246,5 @@ if __name__ == "__main__":
     # main()
 
     best_sma_strategy_selection()
-    print("="*50)
-    best_rsi_strategy_selection()
+    # print("="*50)
+    # best_rsi_strategy_selection()

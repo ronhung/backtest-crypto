@@ -2,6 +2,7 @@ from backtest_platform import BacktestEngine
 from strategy_example import (
     simple_moving_average_strategy,
     rsi_strategy,
+    partial_rsi_strategy,
     bollinger_bands_strategy,
     buy_and_hold_strategy,
 )
@@ -19,7 +20,7 @@ def run_strategy_backtest(data_file, strategy_func, strategy_params=None):
     performance = backtest.run_backtest(signals)
     backtest.print_summary()
     # 如不需圖，可註解下一行
-    # backtest.plot_results()
+    backtest.plot_results()
     return backtest, performance
 
 # 讀取並排序
@@ -41,7 +42,7 @@ def objective_function(result: dict) -> float:
     評估策略績效的函數
     這裡用 Sharpe ratio 當作目標，你可以換成其他指標
     """
-    return result.get('sharpe_ratio', 0)
+    return result.get('total_return', 0)
 
 def best_sma_strategy_selection(top_param):
     data_file = 'kline_with_indicators/btcusdt_1m_test.csv'
@@ -59,12 +60,8 @@ def best_sma_strategy_selection(top_param):
         _, performance = run_strategy_backtest(data_file, simple_moving_average_strategy, params)
         print(f"績效: {performance}")
         print("-"*30)
-
-        # 執行回測
-        _, result = run_strategy_backtest(data_file, simple_moving_average_strategy, params)
-
         # 評估績效
-        score = objective_function(result)
+        score = objective_function(performance)
 
         results.append((params, score))
 
@@ -98,11 +95,8 @@ def best_rsi_strategy_selection(top_param):
         print(f"績效: {performance}")
         print("-"*30)
 
-        # 執行回測
-        _, result = run_strategy_backtest(data_file, rsi_strategy, params)
-
         # 評估績效
-        score = objective_function(result)
+        score = objective_function(performance)
 
         results.append((params, score))
 
@@ -118,6 +112,19 @@ def best_rsi_strategy_selection(top_param):
     ])
     df.to_csv("rsi_grid_search_results_train_rsi.csv", index=False)
 
+def test_sma(short_window, long_window):
+    data_file = 'kline_with_indicators/btcusdt_1m_test.csv'
+    params = {
+        "short_window": short_window,
+        "long_window": long_window
+    }
+    _, performance = run_strategy_backtest(data_file, simple_moving_average_strategy, params)
+    print(f"績效: {performance}")
+
+    _, performance = run_strategy_backtest(data_file, buy_and_hold_strategy, None)
+    print(f"績效: {performance}")
+
+
 if __name__ == "__main__":
     # 直接運行快速測試
     # quick_test()
@@ -127,9 +134,11 @@ if __name__ == "__main__":
 
     # best_sma_strategy_selection(top10_sma)
     # print("="*50)
-    best_rsi_strategy_selection(top10_rsi)
-    print("="*50)
+    # best_rsi_strategy_selection(top10_rsi)
+    # print("="*50)
     # data_file = 'kline_with_indicators/btcusdt_1m_test.csv'
     # _, result = run_strategy_backtest(data_file, buy_and_hold_strategy , None)
     # print(result)
+
+    test_sma(3600, 28800)
 
