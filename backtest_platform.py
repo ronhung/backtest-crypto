@@ -161,7 +161,10 @@ class BacktestEngine:
                 if target_position_ratio >  real_position_ratio:  # 目標倉位比大於目前真實倉位比
                     # 計算需要投入的資金，以達到目標倉位比例 (position_ratio累加即為交易後總倉位比例)
                     current_assest = current_capital + current_position * current_price
-                    additional_capital_needed = current_capital - (1 - target_position_ratio) * current_assest
+                    target_position_value = target_position_ratio * current_assest
+                    current_position_value = current_position * current_price
+                    additional_capital_needed = target_position_value - current_position_value
+
                     
                     if additional_capital_needed <= current_capital:
                         # 執行買入
@@ -173,7 +176,7 @@ class BacktestEngine:
                         total_position = current_position + actual_investment
                         current_position_ratio = target_position_ratio
                         current_position = total_position
-                        current_capital -= additional_capital_needed
+                        current_capital -= (additional_capital_needed + commission)
                         
                         # 記錄交易
                         trade = {

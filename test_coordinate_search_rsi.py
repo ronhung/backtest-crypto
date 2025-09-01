@@ -46,10 +46,10 @@ best_params, best_objval = coordinate_search(
     "overbought": 80,
     "sma_window": 20,
     "k": 100
-    }, # 初始參數 [rsi_period, oversold, overbought]
+    },
     tol=1e-2,
     max_iter=50,
-    int_params={"rsi_period", "signal_period", "sma_window"}  # 指定整數參數
+    int_params={"rsi_period", "signal_period", "sma_window"}
 )
 
 print("最佳參數:", best_params)
