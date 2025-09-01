@@ -156,11 +156,12 @@ class BacktestEngine:
             if signal > 0:  # 買入信號
                 # 計算要買入的倉位比例
                 target_position_ratio = min(1.0, current_position_ratio + signal)
-                additional_position_ratio = target_position_ratio - current_position_ratio
-                
-                if additional_position_ratio > 0:
-                    # 計算需要投入的資金 
-                    additional_capital_needed = additional_position_ratio * current_capital / (1 - current_position_ratio)
+                current_assest = current_capital + current_position * current_price
+                real_position_ratio = (current_position * current_price) / current_assest
+                if target_position_ratio >  real_position_ratio:  # 目標倉位比大於目前真實倉位比
+                    # 計算需要投入的資金，以達到目標倉位比例 (position_ratio累加即為交易後總倉位比例)
+                    current_assest = current_capital + current_position * current_price
+                    additional_capital_needed = current_capital - (1 - target_position_ratio) * current_assest
                     
                     if additional_capital_needed <= current_capital:
                         # 執行買入
@@ -168,6 +169,7 @@ class BacktestEngine:
                         actual_investment = (additional_capital_needed - commission) / current_price
                         
                         # 計算新的倉位比例和價值
+                        actual_investment_ratio = target_position_ratio - current_position_ratio
                         total_position = current_position + actual_investment
                         current_position_ratio = target_position_ratio
                         current_position = total_position
@@ -178,7 +180,7 @@ class BacktestEngine:
                             'timestamp': row.Open_time,
                             'action': 'BUY',
                             'price': current_price,
-                            'position_ratio': additional_position_ratio,
+                            'position_ratio': actual_investment_ratio,
                             'amount': actual_investment,
                             'commission': commission,
                             'capital_before': current_capital + additional_capital_needed,
@@ -198,17 +200,21 @@ class BacktestEngine:
             elif signal < 0:  # 賣出信號
                 # 計算要賣出的倉位比例
                 sell_position_ratio = abs(signal)
-                actual_sell_ratio = min(sell_position_ratio, current_position_ratio)
-                
-                if actual_sell_ratio > 0:
+                target_position_ratio = max(0.0, current_position_ratio - sell_position_ratio)
+                current_assest = current_capital + current_position * current_price
+                real_position_ratio = (current_position * current_price) / current_assest
+                if target_position_ratio < real_position_ratio:  # 目標倉位比小於目前真實倉位比
+
                     # 計算賣出價值
-                    sell_position = current_position * (actual_sell_ratio / current_position_ratio)
+                    target_position = target_position_ratio * current_assest / current_price
+                    sell_position = current_position - target_position
                     sell_value = sell_position * current_price
                     commission = sell_value * self.commission_rate
                     net_sell_value = sell_value - commission
                     
                     # 更新倉位
-                    current_position_ratio -= actual_sell_ratio
+                    actual_sell_position_ratio = current_position_ratio - target_position_ratio
+                    current_position_ratio = target_position_ratio
                     current_position -= sell_position
                     current_capital += net_sell_value
                     
@@ -220,7 +226,7 @@ class BacktestEngine:
                         'timestamp': row.Open_time,
                         'action': 'SELL',
                         'price': current_price,
-                        'position_ratio': actual_sell_ratio,
+                        'position_ratio': actual_sell_position_ratio,
                         'amount': sell_value,
                         'commission': commission,
                         'capital_before': current_capital - net_sell_value,
