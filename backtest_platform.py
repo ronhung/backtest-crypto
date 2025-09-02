@@ -222,7 +222,7 @@ class BacktestEngine:
                     current_capital += net_sell_value
                     
                     # 處理沖銷單並計算盈虧
-                    closed_positions = self._process_sell_trade(sell_position, current_price, row.Open_time, commission)
+                    self._process_sell_trade(sell_position, current_price, row.Open_time, commission)
                     
                     # 記錄交易（包含沖銷單信息）
                     trade = {
@@ -234,7 +234,7 @@ class BacktestEngine:
                         'commission': commission,
                         'capital_before': current_capital - net_sell_value,
                         'capital_after': current_capital,
-                        'closed_positions': closed_positions  # 新增：沖銷單信息
+                        'closed_positions': self.closed_positions  # 新增：沖銷單信息
                     }
                     self.trades.append(trade)
             

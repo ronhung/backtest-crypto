@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from backtest_platform import BacktestEngine
 
-def simple_moving_average_strategy(data: pd.DataFrame, short_window: int = 10, long_window: int = 30) -> list:
+def simple_moving_average_strategy(data: pd.DataFrame, short_window: int = 10, long_window: int = 30, k: int = 1) -> list:
     """
     簡單移動平均線策略
     
@@ -26,10 +26,10 @@ def simple_moving_average_strategy(data: pd.DataFrame, short_window: int = 10, l
         else:
             # 金叉：短期MA上穿長期MA
             if short_ma.iloc[i] > long_ma.iloc[i] and short_ma.iloc[i-1] <= long_ma.iloc[i-1]:
-                signals.append(1)  # 買入信號
+                signals.append(k)  # 買入信號
             # 死叉：短期MA下穿長期MA
             elif short_ma.iloc[i] < long_ma.iloc[i] and short_ma.iloc[i-1] >= long_ma.iloc[i-1]:
-                signals.append(-1)  # 賣出信號
+                signals.append(-1*k)  # 賣出信號
             else:
                 signals.append(0)  # 不動作
     

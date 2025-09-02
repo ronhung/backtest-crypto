@@ -1,8 +1,6 @@
 import numpy as np
 from scipy.optimize import minimize_scalar
 
-import numpy as np
-from scipy.optimize import minimize_scalar
 
 def coordinate_search(obj_func, x0: dict, tol=1e-6, max_iter=100, int_params=None):
     """
@@ -27,7 +25,7 @@ def coordinate_search(obj_func, x0: dict, tol=1e-6, max_iter=100, int_params=Non
                     if val < 1:  # 避免 window=0
                         val = 1
                 x_new[k] = val
-                return obj_func(x_new)
+                return -1 *obj_func(x_new)
             
             res = minimize_scalar(f_line)
             val = x[k] + res.x
