@@ -72,7 +72,6 @@ class BacktestEngine:
             commission: 手續費
         """
         remaining_sell_quantity = sell_quantity
-        closed_positions_in_trade = []
         
         # 按照FIFO原則處理賣出
         while remaining_sell_quantity > 0 and self.open_positions:
@@ -90,23 +89,23 @@ class BacktestEngine:
             # 計算淨盈虧（扣除買賣手續費）
             gross_profit = (sell_price - buy_price) * close_quantity
             net_profit = gross_profit - buy_commission - sell_commission
+            if close_quantity == remaining_sell_quantity:
+                # 創建沖銷單記錄
+                closed_position = {
+                    'buy_timestamp': open_position['timestamp'],
+                    'sell_timestamp': timestamp,
+                    'buy_price': buy_price,
+                    'sell_price': sell_price,
+                    'quantity': sell_quantity,
+                    'buy_commission': buy_commission,
+                    'sell_commission': sell_commission,
+                    'gross_profit': gross_profit,
+                    'net_profit': net_profit,
+                    'is_profitable': net_profit > 0
+                }
             
-            # 創建沖銷單記錄
-            closed_position = {
-                'buy_timestamp': open_position['timestamp'],
-                'sell_timestamp': timestamp,
-                'buy_price': buy_price,
-                'sell_price': sell_price,
-                'quantity': close_quantity,
-                'buy_commission': buy_commission,
-                'sell_commission': sell_commission,
-                'gross_profit': gross_profit,
-                'net_profit': net_profit,
-                'is_profitable': net_profit > 0
-            }
-            
-            closed_positions_in_trade.append(closed_position)
-            self.closed_positions.append(closed_position)
+
+                self.closed_positions.append(closed_position)
             
             # 更新未平倉數量
             if close_quantity == open_position['remaining_quantity']:
@@ -117,8 +116,7 @@ class BacktestEngine:
                 open_position['remaining_quantity'] -= close_quantity
             
             remaining_sell_quantity -= close_quantity
-        
-        return closed_positions_in_trade
+        return
     
     def run_backtest(self, signals: List[float]):
         """
