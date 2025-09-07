@@ -98,8 +98,8 @@ best_params, best_objval = coordinate_search(
     "x": 0.005,
     "y": 0.005,
     },
-    tol=1e-2,
-    max_iter=50
+    tol=1e-4,
+    max_iter=100
 )
 
 print("最佳參數:", best_params)

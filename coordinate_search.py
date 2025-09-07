@@ -25,7 +25,7 @@ def coordinate_search(obj_func, x0: dict, tol=1e-6, max_iter=100, int_params=Non
                     if val < 1:  # 避免 window=0
                         val = 1
                 x_new[k] = val
-                return -1 *obj_func(x_new)
+                return -obj_func(x_new)
             
             res = minimize_scalar(f_line)
             val = x[k] + res.x
@@ -46,7 +46,7 @@ def coordinate_search(obj_func, x0: dict, tol=1e-6, max_iter=100, int_params=Non
 if __name__ == "__main__":
     # 測試函數：f(x, y) = (x-1)^2 + (y-2)^2
     def test_func(params):
-        return (params["x"] - 1) ** 2 + (params["y"] - 2) ** 2
+        return -(params["x"] - 1) ** 2 - (params["y"] - 2) ** 2
 
     x0 = {"x": 0, "y": 0}  # 初始點
     best_params, best_val = coordinate_search(test_func, x0)
