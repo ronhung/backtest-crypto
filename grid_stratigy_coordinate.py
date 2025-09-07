@@ -89,7 +89,8 @@ def objective_function(params):
     """
     data_file = 'kline_with_indicators/btcusdt_1m_train.csv'
     _, performance = run_strategy_backtest(data_file, grid_trading_strategy, params)
-    return performance.get('sharpe_ratio', 0)
+    fitness = performance.get('sharpe_ratio', 0)* performance.get('total_return', 0) * (1- performance.get('max_drawdown', 1))
+    return fitness
     
 
 best_params, best_objval = coordinate_search(
