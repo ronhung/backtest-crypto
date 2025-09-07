@@ -104,3 +104,9 @@ best_params, best_objval = coordinate_search(
 
 print("最佳參數:", best_params)
 print("最佳目標函數值 (Sharpe ratio):", best_objval)
+
+# 存成 DataFrame
+df = pd.DataFrame([{**best_params, "Sharpe_ratio": best_objval}])
+
+# 存到 CSV (append mode)
+df.to_csv("grid_coordinate_results.csv", mode="a", index=False, header=not pd.io.common.file_exists("results.csv"))
