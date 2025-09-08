@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 
 
-def coordinate_search(obj_func, x0: dict, tol=1e-6, max_iter=100, int_params=None, postive_params=None):
+def coordinate_search(obj_func, x0: dict, tol=1e-6, max_iter=100, int_params=None, positive_params=None):
     """
     obj_func: 目標函數，接受 dict
     x0: 初始點 (dict)
