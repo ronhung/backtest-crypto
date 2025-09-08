@@ -93,7 +93,7 @@ def objective_function(params):
     total_return = performance.get('total_return', 0)
     max_drawdown = performance.get('max_drawdown', 1)
     fitness = sharp_ratio * total_return / (max_drawdown if max_drawdown != 0 else 1)
-    return (fitness, sharp_ratio, total_return, max_drawdown)
+    return fitness
     
 
 best_params, best_objval = coordinate_search(
@@ -107,11 +107,16 @@ best_params, best_objval = coordinate_search(
     positive_params={"x", "y"}
 )
 
+_, performance = run_strategy_backtest(
+    'kline_with_indicators/btcusdt_1m_test.csv',grid_trading_strategy, best_params)
+sharp_ratio = performance.get('sharpe_ratio', 0)
+total_return = performance.get('total_return', 0)
+max_drawdown = performance.get('max_drawdown', 1)
 print("最佳參數:", best_params)
-print("最佳目標函數值:", {**best_params, "fitness": best_objval[0], "Sharpe_ratio": best_objval[1], "total_return": best_objval[2], "max_drawdown": best_objval[3]})
+print("最佳目標函數值:", {**best_params, "fitness": best_objval, "Sharpe_ratio": sharp_ratio, "total_return": total_return, "max_drawdown": max_drawdown})
 
 # 存成 DataFrame
-df = pd.DataFrame([{**best_params, "fitness": best_objval[0], "Sharpe_ratio": best_objval[1], "total_return": best_objval[2], "max_drawdown": best_objval[3]}])
+df = pd.DataFrame([{**best_params, "fitness": best_objval, "Sharpe_ratio": sharp_ratio, "total_return": total_return, "max_drawdown": max_drawdown}])
 
 # 存到 CSV (append mode)
 df.to_csv("grid_coordinate_results.csv", mode="a", index=False, header=not pd.io.common.file_exists("results.csv"))
