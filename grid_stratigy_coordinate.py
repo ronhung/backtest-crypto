@@ -92,20 +92,17 @@ def objective_function(params):
     sharp_ratio = performance.get('sharpe_ratio', 0)
     total_return = performance.get('total_return', 0)
     max_drawdown = performance.get('max_drawdown', 1)
-    fitness = sharp_ratio * total_return / (max_drawdown if max_drawdown != 0 else 1)
+    fitness = sharp_ratio * total_return / max(max_drawdown, 0.01)
     return fitness
     
+best_score = -np.inf
+for _ in range(5):
+    x0_rand = {"x": np.random.uniform(0, 0.01), "y": np.random.uniform(0, 0.01)}
+    params, score = coordinate_search(objective_function, x0_rand, tol=1e-4, max_iter=100, positive_params={"x", "y"})
+    if score > best_score:
+        best_score = score
+        best_params = params
 
-best_params, best_objval = coordinate_search(
-    objective_function,
-    x0 = {
-    "x": 0.005,
-    "y": 0.005,
-    },
-    tol=1e-4,
-    max_iter=100,
-    positive_params={"x", "y"}
-)
 
 _, performance = run_strategy_backtest(
     'kline_with_indicators/btcusdt_1m_test.csv',grid_trading_strategy, best_params)
@@ -113,10 +110,10 @@ sharp_ratio = performance.get('sharpe_ratio', 0)
 total_return = performance.get('total_return', 0)
 max_drawdown = performance.get('max_drawdown', 1)
 print("最佳參數:", best_params)
-print("最佳目標函數值:", {**best_params, "fitness": best_objval, "Sharpe_ratio": sharp_ratio, "total_return": total_return, "max_drawdown": max_drawdown})
+print("最佳目標函數值:", {**best_params, "fitness": best_score, "Sharpe_ratio": sharp_ratio, "total_return": total_return, "max_drawdown": max_drawdown})
 
 # 存成 DataFrame
-df = pd.DataFrame([{**best_params, "fitness": best_objval, "Sharpe_ratio": sharp_ratio, "total_return": total_return, "max_drawdown": max_drawdown}])
+df = pd.DataFrame([{**best_params, "fitness": best_score, "Sharpe_ratio": sharp_ratio, "total_return": total_return, "max_drawdown": max_drawdown}])
 
 # 存到 CSV (append mode)
 df.to_csv("grid_coordinate_results.csv", mode="a", index=False, header=not pd.io.common.file_exists("results.csv"))

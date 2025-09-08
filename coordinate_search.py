@@ -17,6 +17,8 @@ def coordinate_search(obj_func, x0: dict, tol=1e-6, max_iter=100, int_params=Non
         
         for k in keys:
             # 定義沿第 k 個方向的一維函數
+            if k not in int_params:
+                x[k] *= np.random.uniform(0.99, 1.01)
             def f_line(alpha):
                 x_new = x.copy()
                 val = x[k] + alpha
@@ -28,7 +30,7 @@ def coordinate_search(obj_func, x0: dict, tol=1e-6, max_iter=100, int_params=Non
                 x_new[k] = val
                 return -1 *obj_func(x_new)
             
-            res = minimize_scalar(f_line)
+            res = minimize_scalar(f_line, bounds=(0, 1), method='bounded')
             val = x[k] + res.x
             if k in int_params:
                 val = int(round(val))
