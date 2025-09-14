@@ -97,7 +97,7 @@ def objective_function(params):
     return fitness
     
 best_score = -np.inf
-for _ in range(5):
+for _ in range(1):
     x0_rand = {"x": np.random.uniform(0, 0.01), "y": np.random.uniform(0, 0.01)}
     params, score = coordinate_search(objective_function, x0_rand, tol=1e-4, max_iter=100, positive_params={"x", "y"})
     if score > best_score:
