@@ -92,7 +92,8 @@ def objective_function(params):
     sharp_ratio = performance.get('sharpe_ratio', 0)
     total_return = performance.get('total_return', 0)
     max_drawdown = performance.get('max_drawdown', 1)
-    fitness = sharp_ratio * total_return / max(max_drawdown, 0.01)
+    dead_time = performance.get('dead_time', None)
+    fitness = sharp_ratio * total_return / max(max_drawdown, 0.01) + dead_time.timestamp() / 1e10
     return fitness
     
 best_score = -np.inf

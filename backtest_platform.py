@@ -34,7 +34,7 @@ class BacktestEngine:
         # 新增：沖銷單追蹤
         self.open_positions = []  # 未平倉的買入記錄
         self.closed_positions = []  # 已完成的沖銷單
-        
+        self.dead_time = None
         # 載入數據
         if data_file:
             self.load_data(data_file)
@@ -54,6 +54,7 @@ class BacktestEngine:
             
             print(f"成功載入數據: {len(self.data)} 條記錄")
             print(f"時間範圍: {self.data['Open_time'].min()} 到 {self.data['Open_time'].max()}")
+            self.dead_time = self.data['Open_time'].max()
             return True
             
         except Exception as e:
@@ -243,7 +244,11 @@ class BacktestEngine:
             else:
                 # 無倉位，只有現金
                 portfolio_value = current_capital
-            
+            if self.portfolio_values == 0:
+                self.dead_time = row.Open_time
+                self.portfolio_values.extend([portfolio_value] * (len(self.data) - i))
+                self.positions.extend([current_position_ratio] * (len(self.data) - i))
+                break
             self.portfolio_values.append(portfolio_value)
             self.positions.append(current_position_ratio)
         
@@ -347,7 +352,8 @@ class BacktestEngine:
             'final_capital': self.equity_curve.iloc[-1],
             'initial_capital': self.initial_capital,
             'time_span_days': total_days,  # 新增：時間跨度（天）
-            'annual_multiplier': annual_multiplier  # 新增：年化倍數
+            'annual_multiplier': annual_multiplier,  # 新增：年化倍數
+            'dead_time': self.dead_time  # 新增：數據結束時間
         }
         
         return performance
