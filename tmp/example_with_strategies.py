@@ -1,5 +1,5 @@
-from backtest_platform import BacktestEngine
-from strategy_example import (
+from core import BacktestEngine, BacktestConfig
+from strategies.strategy_example import (
     simple_moving_average_strategy,
     rsi_strategy,
     bollinger_bands_strategy,
@@ -22,10 +22,12 @@ def reduce_trading_frequency(signals, target_trades=1000):
     return reduced
 
 
-def run_strategy_backtest_reduced(data_file, strategy_func, strategy_params=None, target_trades=1000):
+def run_strategy_backtest_reduced(data_file=None, strategy_func=None, strategy_params=None, target_trades=1000, config: BacktestConfig = None):
     """載入數據 → 產生信號 → 降頻 → 回測"""
-    backtest = BacktestEngine(initial_capital=10000, commission_rate=0.001, symbol='BTCUSDT')
-    if not backtest.load_data(data_file):
+    cfg = config or BacktestConfig()
+    effective_data_file = data_file or str(cfg.data_file)
+    backtest = BacktestEngine.from_config(cfg, data_file=effective_data_file)
+    if backtest.data is None:
         print("數據載入失敗")
         return None, None
 
@@ -40,10 +42,12 @@ def run_strategy_backtest_reduced(data_file, strategy_func, strategy_params=None
     backtest.plot_results()
     return backtest, performance
 
-def run_strategy_backtest(data_file, strategy_func, strategy_params=None):
+def run_strategy_backtest(data_file=None, strategy_func=None, strategy_params=None, config: BacktestConfig = None):
     """載入數據 → 產生信號 → 降頻 → 回測"""
-    backtest = BacktestEngine(initial_capital=10000, commission_rate=0.001, symbol='BTCUSDT')
-    if not backtest.load_data(data_file):
+    cfg = config or BacktestConfig()
+    effective_data_file = data_file or str(cfg.data_file)
+    backtest = BacktestEngine.from_config(cfg, data_file=effective_data_file)
+    if backtest.data is None:
         print("數據載入失敗")
         return None, None
 
@@ -64,7 +68,8 @@ def main():
     print("="*60)
     
     # 數據文件路徑
-    data_file = 'kline_with_indicators/btcusdt_1m.csv'
+    cfg = BacktestConfig()
+    data_file = str(cfg.data_file)
     
     print(f"使用數據文件: {data_file}")
     print("\n可用的內建策略:")
@@ -140,7 +145,8 @@ def quick_test():
     """快速測試所有策略"""
     print("快速測試所有內建策略...")
     
-    data_file = 'kline_with_indicators/btcusdt_4h.csv'
+    cfg = BacktestConfig()
+    data_file = str(cfg.data_file)
     
     tests = [
         ("移動平均線（降頻）", simple_moving_average_strategy, {"short_window": 10, "long_window": 30}),
@@ -198,7 +204,8 @@ def grid_search(strategy_fn, param_grid: dict, data_file: str):
     return best_params, best_score, results
 
 def best_sma_strategy_selection():
-    data_file = 'kline_with_indicators/btcusdt_1m_train.csv'
+    cfg = BacktestConfig()
+    data_file = str(cfg.train_data_file)
     param_grid_sma = {
         "short_window": [10*60, 15*60, 30*60, 60*60, 120* 60],
         "long_window": [30*60, 60*60, 120*60, 240*60, 480*60, 600*60]
@@ -218,7 +225,8 @@ def best_sma_strategy_selection():
     df.to_csv("rsi_grid_search_results_sma.csv", index=False)
 
 def best_rsi_strategy_selection():
-    data_file = 'kline_with_indicators/btcusdt_1m_train.csv'
+    cfg = BacktestConfig()
+    data_file = str(cfg.train_data_file)
     param_grid_rsi = {
         "rsi_period": [7, 14, 35, 70, 90, 180],
         "oversold": [60, 70, 80, 90, 95],
@@ -240,7 +248,8 @@ def best_rsi_strategy_selection():
     df.to_csv("rsi_grid_search_results_rsi.csv", index=False)
 
 if __name__ == "__main__":
-    data_file = 'kline_with_indicators/btcusdt_1m_train.csv'
+    cfg = BacktestConfig()
+    data_file = str(cfg.train_data_file)
     # 直接運行快速測試
     # quick_test()
     
